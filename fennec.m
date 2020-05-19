@@ -325,14 +325,16 @@ SparseArray[Band[{0,pos}+1]->Fennec`Arbc[\[Lambda]],{Length[Fennec`Arbc[\[Lambda
 ,{\[Lambda],0,Fennec`\[Lambda]max}];
 If[!Fennec`zeroInDomain,
 Table[
-Fennec`AlbcPadded[\[Lambda]]=Fennec`Albc[\[Lambda]]
-(*SparseArray[Band[{1,1}]\[Rule]Fennec`Albc[\[Lambda]],{Length[Fennec`Albc[\[Lambda]]],Fennec`nColTotal}]*)
+Fennec`AlbcPadded[\[Lambda]]=(*Fennec`Albc[\[Lambda]]*)
+SparseArray[Band[{1,1}]->Fennec`Albc[\[Lambda]],{Length[Fennec`Albc[\[Lambda]]],Fennec`nColTotal}]
 ,{\[Lambda],0,Fennec`\[Lambda]max}];
 ];
 
 Table[
 Fennec`Amat[\[Lambda]]=
-If[Fennec`zeroInDomain,(Join@@Riffle[Table[Fennec`AbulkPadded[\[Lambda],layer],{layer,1,Fennec`nlayers}],Table[Fennec`AjcPadded[\[Lambda],layer],{layer,1,Fennec`nlayers-1}]])~Join~(Fennec`ArbcPadded[\[Lambda]]),(Fennec`AlbcPadded[\[Lambda]])~Join~(Join@@Riffle[Table[Fennec`AbulkPadded[\[Lambda],layer],{layer,1,Fennec`nlayers}],Table[Fennec`AjcPadded[\[Lambda],layer],{layer,1,Fennec`nlayers-1}]])~Join~(Fennec`ArbcPadded[\[Lambda]])
+If[Fennec`zeroInDomain,
+(Join@@Riffle[Table[Fennec`AbulkPadded[\[Lambda],layer],{layer,1,Fennec`nlayers}],Table[Fennec`AjcPadded[\[Lambda],layer],{layer,1,Fennec`nlayers-1}]])~Join~(Fennec`ArbcPadded[\[Lambda]]),
+(Fennec`AlbcPadded[\[Lambda]])~Join~(Join@@Riffle[Table[Fennec`AbulkPadded[\[Lambda],layer],{layer,1,Fennec`nlayers}],Table[Fennec`AjcPadded[\[Lambda],layer],{layer,1,Fennec`nlayers-1}]])~Join~(Fennec`ArbcPadded[\[Lambda]])
 ]
 ,{\[Lambda],0,Fennec`\[Lambda]max}];
 
