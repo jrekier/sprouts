@@ -17,7 +17,8 @@ PartitionDomain::usage="";
 
 
 FennecFun::usage="";
-(*AssembleMatrices::usage="";*)
+(*AssembleMatrices::usage="";
+parseDiffEq::usage="";*)
 
 
 Begin["`Private`"];
@@ -65,7 +66,7 @@ bigmat=SparseArray@Simplify@Last@coef;
 
 
 FennecFun[eqns_List,yy_,xx_,nr_?EvenQ,opts:OptionsPattern[]]:=
-Block[{in=parseDiffEq[eqns,yy,xx,opts]},
+Block[{in=parseDiffEq[eqns,yy,xx,FilterRules[opts,$parseKeys]]},
 AssembleMatrices[in,nr,opts](*in*)
 ];
 
@@ -118,6 +119,7 @@ $parseKeys={
 
 ClearAll[parseDiffEq];
 (*SetAttributes[parseDiffEq,HoldAll];*)
+
 Options[parseDiffEq]=Thread[$parseKeys->Automatic]~Join~Options[AssembleMatrices];
 parseDiffEq::ndnl=NDSolve::ndnl;
 parseDiffEq::dsvar=NDSolve::dsvar;
@@ -233,7 +235,7 @@ True,Message[AssembleMatrices::errpy];
 (* check if eigenvalue problem or Ax=b *)
 Fennec`\[Lambda]max=Max@(Exponent[#,\[Lambda]\[Lambda]]&/@Flatten[{Fennec`eq,Fennec`rbc}]);
 If[!SameQ[Fennec`\[Lambda]max,0],
-Fennec`evp=True;Echo[Fennec`\[Lambda]max,"eigenvalue problem of order : "];,
+Fennec`evp=True;Echo[Plus@@Table["A"<>ToString[i] \[Lambda]\[Lambda]^ToString[i],{i,0,Fennec`\[Lambda]max}]==0,"eigenvalue problem of type : "];,
 Fennec`evp=False;Echo["","linear problem of the type Ax=b"]
 ];
 
