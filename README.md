@@ -1,4 +1,4 @@
 fennec
 ---
 
-is a code developed with support of the Royal Observatory of Belgium. 
+By Jeremy Rekier with support from the Royal Observatory of Belgium. 
