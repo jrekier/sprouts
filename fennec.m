@@ -198,12 +198,12 @@ Fennec`eq=Numerator@Together@Table[GatherBy[(in["de"]/.Equal[a_,b_]->a-b),Max[In
 Fennec`\[ScriptCapitalO]d=Table[Max[Internal`ProcessEquations`DifferentialOrder[#,xx,Fennec`layout[[1]]]]&/@Fennec`eq[[k]],{k,1,Fennec`nlayers}];
 
 (* check and collect boundary conditions *)
-{bck,bcd}={Part[in["bcs"],Flatten@Position[MemberQ[Fennec`domain,#]&/@Flatten[(cullArgs[#,in["dependentVars"]]&/@in["bcs"]),3],True]],
-Part[in["bcs"],Flatten@Position[!MemberQ[Fennec`domain,#]&/@Flatten[(cullArgs[#,in["dependentVars"]]&/@in["bcs"]),3],True]]};
+{bck,bcd}={Part[in["bcs"],Flatten@Position[MemberQ[Fennec`domain,#]&/@Flatten[(DeleteDuplicates[cullArgs[#,in["dependentVars"]]]&/@in["bcs"]),3],True]],
+Part[in["bcs"],Flatten@Position[!MemberQ[Fennec`domain,#]&/@Flatten[(DeleteDuplicates[cullArgs[#,in["dependentVars"]]]&/@in["bcs"]),3],True]]};
 Check[If[!SameQ[bcd,{}],Print[bcd];Message[AssembleMatrices::cnobc]],Throw[$Failed]];
 
-{Fennec`lbc,Fennec`rbc}={Part[in["bcs"],Flatten@Position[MemberQ[{Fennec`domain[[1]]},#]&/@Flatten[(cullArgs[#,in["dependentVars"]]&/@bck),3],True]],
-Part[in["bcs"],Flatten@Position[!MemberQ[{Fennec`domain[[1]]},#]&/@Flatten[(cullArgs[#,in["dependentVars"]]&/@bck),3],True]]}/.Equal[a_,b_]->a-b;
+{Fennec`lbc,Fennec`rbc}={Part[in["bcs"],Flatten@Position[MemberQ[{Fennec`domain[[1]]},#]&/@Flatten[(DeleteDuplicates[cullArgs[#,in["dependentVars"]]]&/@bck),3],True]],
+Part[in["bcs"],Flatten@Position[!MemberQ[{Fennec`domain[[1]]},#]&/@Flatten[(DeleteDuplicates[cullArgs[#,in["dependentVars"]]]&/@bck),3],True]]}/.Equal[a_,b_]->a-b;
 Fennec`lbc={Fennec`lbc}/.f_[\[ScriptL]_,\[ScriptM]_][Fennec`domain[[1]]]->f[\[ScriptL],\[ScriptM]][Sequence@@xx];
 Fennec`rbc={Fennec`rbc}/.f_[\[ScriptL]_,\[ScriptM]_][Fennec`domain[[2]]]->f[\[ScriptL],\[ScriptM]][Sequence@@xx];
 
