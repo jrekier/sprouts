@@ -235,7 +235,7 @@ True,Message[AssembleMatrices::errpy];
 (* check if eigenvalue problem or Ax=b *)
 Fennec`\[Lambda]max=Max@(Exponent[#,\[Lambda]\[Lambda]]&/@Flatten[{Fennec`eq,Fennec`rbc}]);
 If[!SameQ[Fennec`\[Lambda]max,0],
-Fennec`evp=True;Echo[Plus@@Table["A"<>ToString[i] \[Lambda]\[Lambda]^ToString[i],{i,0,Fennec`\[Lambda]max}]==0,"eigenvalue problem of type : "];,
+Fennec`evp=True;Echo[Row[{"(",Plus@@Table["A"<>ToString[i] ToString[\[Lambda]\[Lambda]]^i,{i,0,Fennec`\[Lambda]max}],")x"}]==0,"eigenvalue problem of type : "];,
 Fennec`evp=False;Echo["","linear problem of the type Ax=b"]
 ];
 
