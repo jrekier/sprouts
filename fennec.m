@@ -206,9 +206,12 @@ Check[If[!SameQ[bcd,{}],Print[bcd];Message[AssembleMatrices::cnobc]],Throw[$Fail
 
 {Fennec`lbc,Fennec`rbc}={Part[in["bcs"],Flatten@Position[MemberQ[{Fennec`domain[[1]]},#]&/@Flatten[(DeleteDuplicates[cullArgs[#,in["dependentVars"]]]&/@bck),3],True]],
 Part[in["bcs"],Flatten@Position[!MemberQ[{Fennec`domain[[1]]},#]&/@Flatten[(DeleteDuplicates[cullArgs[#,in["dependentVars"]]]&/@bck),3],True]]}/.Equal[a_,b_]->a-b;
-Fennec`lbc={Fennec`lbc}/.Derivative[i_][f_[\[ScriptL]_,\[ScriptM]_]][Fennec`domain[[1]]]->Derivative[i][f[\[ScriptL],\[ScriptM]]][Sequence@@xx]/.f_[\[ScriptL]_,\[ScriptM]_][Fennec`domain[[1]]]->f[\[ScriptL],\[ScriptM]][Sequence@@xx];
-Fennec`rbc={Fennec`rbc}/.Derivative[i_][f_[\[ScriptL]_,\[ScriptM]_]][Fennec`domain[[2]]]->Derivative[i][f[\[ScriptL],\[ScriptM]]][Sequence@@xx]/.f_[\[ScriptL]_,\[ScriptM]_][Fennec`domain[[2]]]->f[\[ScriptL],\[ScriptM]][Sequence@@xx];
-
+If[!SameQ[Fennec`lbc,{}], (* check if lists of lbc are non empty *)
+Fennec`lbc={Fennec`lbc}/.f_[\[ScriptL]_,\[ScriptM]_][Fennec`domain[[1]]]->f[\[ScriptL],\[ScriptM]][r]
+];
+If[!SameQ[Fennec`rbc,{}], (* check if lists of rbc are non empty *)
+Fennec`rbc={Fennec`rbc}/.f_[\[ScriptL]_,\[ScriptM]_][Fennec`domain[[2]]]->f[\[ScriptL],\[ScriptM]][r];
+];
 (* impose regularity condition at the centre of coordinates based on parity *)
 Check[
 If[Fennec`zeroInDomain,

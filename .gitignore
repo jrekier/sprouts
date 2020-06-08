@@ -1,5 +1,6 @@
 .DS_Store
 
 test.nb
+formulae/
 solver/
 A*.mtx
