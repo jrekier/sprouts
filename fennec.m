@@ -17,8 +17,8 @@ PartitionDomain::usage="";
 
 
 FennecFun::usage="";
-(*AssembleMatrices::usage="";
-parseDiffEq::usage="";*)
+AssembleMatrices::usage="";
+parseDiffEq::usage="";
 
 
 Begin["`Private`"];
@@ -66,7 +66,7 @@ bigmat=SparseArray@Simplify@Last@coef;
 
 
 FennecFun[eqns_List,yy_,xx_,nr_?EvenQ,opts:OptionsPattern[]]:=
-Block[{in=parseDiffEq[eqns,yy,xx,FilterRules[opts,$parseKeys]]},
+Block[{in=parseDiffEq[eqns,yy,xx(*,FilterRules[opts,$parseKeys]*)]},
 AssembleMatrices[in,nr,opts](*in*)
 ];
 
@@ -160,7 +160,7 @@ AssembleMatrices::coord="Please specify the set of coordinates as either 'Spheri
 AssembleMatrices::ndiff="The value of option 'maxDerivative' must be a positive integer larger or equal to the natural value infered frome the set of differential equations (`1`).";
 AssembleMatrices::errpy="Error defining parity of the SH components";
 
-Options[AssembleMatrices]={eigenvalue->Global`\[Lambda],coordinates->"Spherical",maxDerivative->Automatic,parameters->{}};
+Options[AssembleMatrices]={eigenvalue->\[Lambda],coordinates->"Spherical",maxDerivative->Automatic,parameters->{}};
 AssembleMatrices[in_,nr_?EvenQ,opts:OptionsPattern[]]:=
 Block[{xx=in["independentVars"],neq=Length[in["de"]],nbc=Length[in["bcs"]],\[Lambda]\[Lambda]=OptionValue[eigenvalue],
 bck(* bc kept *),bcd(* bc dropped *),
@@ -200,18 +200,30 @@ Fennec`eq=Numerator@Together@Table[GatherBy[(in["de"]/.Equal[a_,b_]->a-b),Max[In
 Fennec`\[ScriptCapitalO]d=Table[Max[Internal`ProcessEquations`DifferentialOrder[#,xx,Fennec`layout[[1]]]]&/@Fennec`eq[[k]],{k,1,Fennec`nlayers}];
 
 (* check and collect boundary conditions *)
-{bck,bcd}={Part[in["bcs"],Flatten@Position[MemberQ[Fennec`domain,#]&/@Flatten[(DeleteDuplicates[cullArgs[#,in["dependentVars"]]]&/@in["bcs"]),3],True]],
+(*(*{bck,bcd}={Part[in["bcs"],Flatten@Position[MemberQ[Fennec`domain,#]&/@Flatten[(DeleteDuplicates[cullArgs[#,in["dependentVars"]]]&/@in["bcs"]),3],True]],
 Part[in["bcs"],Flatten@Position[!MemberQ[Fennec`domain,#]&/@Flatten[(DeleteDuplicates[cullArgs[#,in["dependentVars"]]]&/@in["bcs"]),3],True]]};
+Check[If[!SameQ[bcd,{}],Print[bcd];Message[AssembleMatrices::cnobc]],Throw[$Failed]];*)*)
+{bck,bcd}={Part[in["bcs"],Flatten@Position[ContainsOnly[#,Fennec`domain]&/@Flatten/@(cullArgs[#,in["dependentVars"]]&/@in["bcs"]),True]],
+Part[in["bcs"],Flatten@Position[!ContainsOnly[#,Fennec`domain]&/@Flatten/@(cullArgs[#,in["dependentVars"]]&/@in["bcs"]),True]]};
 Check[If[!SameQ[bcd,{}],Print[bcd];Message[AssembleMatrices::cnobc]],Throw[$Failed]];
 
-{Fennec`lbc,Fennec`rbc}={Part[in["bcs"],Flatten@Position[MemberQ[{Fennec`domain[[1]]},#]&/@Flatten[(DeleteDuplicates[cullArgs[#,in["dependentVars"]]]&/@bck),3],True]],
+(*{Fennec`lbc,Fennec`rbc}={Part[in["bcs"],Flatten@Position[MemberQ[{Fennec`domain[[1]]},#]&/@Flatten[(DeleteDuplicates[cullArgs[#,in["dependentVars"]]]&/@bck),3],True]],
 Part[in["bcs"],Flatten@Position[!MemberQ[{Fennec`domain[[1]]},#]&/@Flatten[(DeleteDuplicates[cullArgs[#,in["dependentVars"]]]&/@bck),3],True]]}/.Equal[a_,b_]->a-b;
 If[!SameQ[Fennec`lbc,{}], (* check if lists of lbc are non empty *)
 Fennec`lbc={Fennec`lbc}/.f_[\[ScriptL]_,\[ScriptM]_][Fennec`domain[[1]]]->f[\[ScriptL],\[ScriptM]][r]
 ];
 If[!SameQ[Fennec`rbc,{}], (* check if lists of rbc are non empty *)
 Fennec`rbc={Fennec`rbc}/.f_[\[ScriptL]_,\[ScriptM]_][Fennec`domain[[2]]]->f[\[ScriptL],\[ScriptM]][r];
+];*)
+{Fennec`lbc,Fennec`rbc}={Part[in["bcs"],Flatten@Position[ContainsOnly[#,Fennec`domain]&/@Flatten/@(cullArgs[#,in["dependentVars"]]&/@bck),True]],
+Part[in["bcs"],Flatten@Position[ContainsOnly[#,Fennec`domain]&/@Flatten/@(cullArgs[#,in["dependentVars"]]&/@bck),True]]}/.Equal[a_,b_]->a-b;
+If[!SameQ[Fennec`lbc,{}], (* check if lists of lbc are non empty *)
+Fennec`lbc={Fennec`lbc}/.f_[\[ScriptL]_,\[ScriptM]_][Fennec`domain[[1]]]->f[\[ScriptL],\[ScriptM]][Sequence@@xx]/.Derivative[n_][f_[\[ScriptL]_,\[ScriptM]_]][Fennec`domain[[1]]]->Derivative[n][f[\[ScriptL],\[ScriptM]]][Sequence@@xx];
 ];
+If[!SameQ[Fennec`rbc,{}], (* check if lists of rbc are non empty *)
+Fennec`rbc={Fennec`rbc}/.f_[\[ScriptL]_,\[ScriptM]_][Fennec`domain[[-1]]]->f[\[ScriptL],\[ScriptM]][Sequence@@xx]/.Derivative[n_][f_[\[ScriptL]_,\[ScriptM]_]][Fennec`domain[[-1]]]->Derivative[n][f[\[ScriptL],\[ScriptM]]][Sequence@@xx];
+];
+
 (* impose regularity condition at the centre of coordinates based on parity *)
 Check[
 If[Fennec`zeroInDomain,
