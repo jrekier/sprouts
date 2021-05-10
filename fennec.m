@@ -391,8 +391,8 @@ Table[Fennec`Amat[\[Lambda]],{\[Lambda],0,Fennec`\[Lambda]max}]
 (*Spectral discretization*)
 
 
-SetDirectory[NotebookDirectory[]];
-Needs["spectral`","./spectral.m"];
+(*SetDirectory[NotebookDirectory[]];*)
+(*Needs["spectral`","./spectral.m"];*)
 
 
 (* evaluate derivative of Chebyshev polynomial at one point and save result *)
