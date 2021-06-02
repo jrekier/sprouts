@@ -136,7 +136,7 @@ interval=Flatten[{interval,endpoints}];
 If[Length@interval==0,Message[parseDiffEq::ndlim,xx];
 x=$Failed,If[!VectorQ[interval,NumericQ],Message[parseDiffEq::ndnl,First@Cases[interval,x0_?(!NumericQ[#]&)],interval];
 x=$Failed,interval=MinMax(*@N*)@interval (*N[] optional; use WorkingPrecision?*)]]];
-parseDiffEq["de"->diff,"bcs"->(condep/.Automatic->{}),"independentVars"->Flatten@{x},"dependentVars"->Flatten@{y},"return"->yy,"domain"->interval,deOpts]/;FreeQ[x,$Failed]];
+parseDiffEq["de"->Join[diff,alg],"bcs"->(condep/.Automatic->{}),"independentVars"->Flatten@{x},"dependentVars"->Flatten@{y},"return"->yy,"domain"->interval,deOpts]/;FreeQ[x,$Failed]];
 
 (*part II:check and process parts given as option rules*)
 parseDiffEq[opts:OptionsPattern[]]:=Module[{asc,alldvars,firstordersys,foRules},(*TBD:validate option values ???*)(**set up association from options**)asc=<|Thread[$parseKeys->OptionValue@$parseKeys]|>;
