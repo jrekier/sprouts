@@ -136,8 +136,10 @@ interval=Flatten[{interval,endpoints}];
 If[Length@interval==0,Message[parseDiffEq::ndlim,xx];
 x=$Failed,If[!VectorQ[interval,NumericQ],Message[parseDiffEq::ndnl,First@Cases[interval,x0_?(!NumericQ[#]&)],interval];
 x=$Failed,interval=MinMax(*@N*)@interval (*N[] optional; use WorkingPrecision?*)]]];
+(*(*multidomains*)
+	x=$Failed,interval=(*Partition[*)Sort@DeleteDuplicates@interval(*,2,1]*) (*N[] optional; use WorkingPrecision?*)]]];
+(**)*)	
 parseDiffEq["de"->Join[diff,alg],"bcs"->(condep/.Automatic->{}),"independentVars"->Flatten@{x},"dependentVars"->Flatten@{y},"return"->yy,"domain"->interval,deOpts]/;FreeQ[x,$Failed]];
-
 (*part II:check and process parts given as option rules*)
 parseDiffEq[opts:OptionsPattern[]]:=Module[{asc,alldvars,firstordersys,foRules},(*TBD:validate option values ???*)(**set up association from options**)asc=<|Thread[$parseKeys->OptionValue@$parseKeys]|>;
 (**parses indep var from eqns;NDSolve does not do this-- unnecessary**)If[asc@"independentVars"===Automatic,asc@"independentVars"=DeleteDuplicates@Cases[Flatten@{asc@"de"},_[x__Symbol]|Derivative[__][_][x__Symbol]:>x,Infinity]];
@@ -203,8 +205,8 @@ Fennec`\[ScriptCapitalO]d=Table[Max[Internal`ProcessEquations`DifferentialOrder[
 (*(*{bck,bcd}={Part[in["bcs"],Flatten@Position[MemberQ[Fennec`domain,#]&/@Flatten[(DeleteDuplicates[cullArgs[#,in["dependentVars"]]]&/@in["bcs"]),3],True]],
 Part[in["bcs"],Flatten@Position[!MemberQ[Fennec`domain,#]&/@Flatten[(DeleteDuplicates[cullArgs[#,in["dependentVars"]]]&/@in["bcs"]),3],True]]};
 Check[If[!SameQ[bcd,{}],Print[bcd];Message[AssembleMatrices::cnobc]],Throw[$Failed]];*)*)
-{bck,bcd}={Part[in["bcs"],Flatten@Position[ContainsOnly[#,Fennec`domain]&/@Flatten/@(cullArgs[#,in["dependentVars"]]&/@in["bcs"]),True]],
-Part[in["bcs"],Flatten@Position[!ContainsOnly[#,Fennec`domain]&/@Flatten/@(cullArgs[#,in["dependentVars"]]&/@in["bcs"]),True]]};
+{bck,bcd}={Part[in["bcs"],Flatten@Position[ContainsOnly[#,MinMax@Fennec`domain]&/@Flatten/@(cullArgs[#,in["dependentVars"]]&/@in["bcs"]),True]],
+Part[in["bcs"],Flatten@Position[!ContainsOnly[#,MinMax@Fennec`domain]&/@Flatten/@(cullArgs[#,in["dependentVars"]]&/@in["bcs"]),True]]};
 Check[If[!SameQ[bcd,{}],Print[bcd];Message[AssembleMatrices::cnobc]],Throw[$Failed]];
 
 (*{Fennec`lbc,Fennec`rbc}={Part[in["bcs"],Flatten@Position[MemberQ[{Fennec`domain[[1]]},#]&/@Flatten[(DeleteDuplicates[cullArgs[#,in["dependentVars"]]]&/@bck),3],True]],
@@ -215,8 +217,8 @@ Fennec`lbc={Fennec`lbc}/.f_[\[ScriptL]_,\[ScriptM]_][Fennec`domain[[1]]]->f[\[Sc
 If[!SameQ[Fennec`rbc,{}], (* check if lists of rbc are non empty *)
 Fennec`rbc={Fennec`rbc}/.f_[\[ScriptL]_,\[ScriptM]_][Fennec`domain[[2]]]->f[\[ScriptL],\[ScriptM]][r];
 ];*)
-{Fennec`lbc,Fennec`rbc}={Part[in["bcs"],Flatten@Position[ContainsOnly[#,Fennec`domain]&/@Flatten/@(cullArgs[#,in["dependentVars"]]&/@bck),True]],
-Part[in["bcs"],Flatten@Position[ContainsOnly[#,Fennec`domain]&/@Flatten/@(cullArgs[#,in["dependentVars"]]&/@bck),True]]}/.Equal[a_,b_]->a-b;
+{Fennec`lbc,Fennec`rbc}={Part[in["bcs"],Flatten@Position[ContainsOnly[#,MinMax@Fennec`domain]&/@Flatten/@(cullArgs[#,in["dependentVars"]]&/@bck),True]],
+Part[in["bcs"],Flatten@Position[ContainsOnly[#,MinMax@Fennec`domain]&/@Flatten/@(cullArgs[#,in["dependentVars"]]&/@bck),True]]}/.Equal[a_,b_]->a-b;
 If[!SameQ[Fennec`lbc,{}], (* check if lists of lbc are non empty *)
 Fennec`lbc={Fennec`lbc}/.f_[\[ScriptL]_,\[ScriptM]_][Fennec`domain[[1]]]->f[\[ScriptL],\[ScriptM]][Sequence@@xx]/.Derivative[n_][f_[\[ScriptL]_,\[ScriptM]_]][Fennec`domain[[1]]]->Derivative[n][f[\[ScriptL],\[ScriptM]]][Sequence@@xx];
 ];
