@@ -1,6 +1,6 @@
 (* ::Package:: *)
 
-BeginPackage["fennec`"];
+BeginPackage["sprouts`"];
 
 
 MyChebyshev::usage="";
@@ -9,14 +9,14 @@ MakeMatD::usage="";
 MakeVec::usage="";
 MakeCol::usage="";
 MakeMatbc::usage="";
-InfoFennec::usage="";
+InfoSprouts::usage="";
 BuildSparseIterate::usage="";
 
 
 PartitionDomain::usage="";
 
 
-FennecFun::usage="";
+SproutsFun::usage="";
 AssembleMatrices::usage="";
 parseDiffEq::usage="";
 
@@ -28,8 +28,8 @@ Begin["`Private`"];
 (*Utilities*)
 
 
-(* gives information about variables in structure object "Fennec`" *)
-InfoFennec[]:=Grid[{Style[#,Bold]&/@{"name","type","arraydepth"}}~Join~({Names["Fennec`*"],Head/@ToExpression@Names["Fennec`*"],ArrayDepth/@ToExpression@Names["Fennec`*"]}\[Transpose]),Alignment->Left]
+(* gives information about variables in structure object "Sprouts`" *)
+InfoSprouts[]:=Grid[{Style[#,Bold]&/@{"name","type","arraydepth"}}~Join~({Names["Sprouts`*"],Head/@ToExpression@Names["Sprouts`*"],ArrayDepth/@ToExpression@Names["Sprouts`*"]}\[Transpose]),Alignment->Left]
 
 
 (*Utilities*)
@@ -65,7 +65,7 @@ bigmat=SparseArray@Simplify@Last@coef;
 (*Call*)
 
 
-FennecFun[eqns_List,yy_,xx_,nr_?EvenQ,opts:OptionsPattern[]]:=
+SproutsFun[eqns_List,yy_,xx_,nr_?EvenQ,opts:OptionsPattern[]]:=
 Block[{in=parseDiffEq[eqns,yy,xx(*,FilterRules[opts,$parseKeys]*)]},
 AssembleMatrices[in,nr,opts](*in*)
 ];
@@ -81,28 +81,28 @@ PartitionDomain[domain_List]:=
 Block[{},
 (* arrange layers and check if the first one contains the origin *)
 Block[{partition=Partition[Sort@Rest[domain],2,1]},
-Fennec`nlayers=Length[partition];
-Table[Fennec`layer[i]=partition[[i]],{i,1,Fennec`nlayers}];
+Sprouts`nlayers=Length[partition];
+Table[Sprouts`layer[i]=partition[[i]],{i,1,Sprouts`nlayers}];
 ]
-If[SameQ[N@First[Fennec`layer[1]],0.],
-Fennec`zeroInDomain=True;,
-Fennec`zeroInDomain=False;
+If[SameQ[N@First[Sprouts`layer[1]],0.],
+Sprouts`zeroInDomain=True;,
+Sprouts`zeroInDomain=False;
 ];
-Echo[Table[Fennec`layer[i],{i,1,Fennec`nlayers}],"partition of the spatial domain :"];
+Echo[Table[Sprouts`layer[i],{i,1,Sprouts`nlayers}],"partition of the spatial domain :"];
 (* rescale physical subdomains to u\[Element][0,1] or u\[Epsilon][-1,1] *)
 Block[{cdom},
-If[Fennec`zeroInDomain,
-Fennec`rfu[1][u_]=Rescale[u,{0,1},Fennec`layer[1]];
-Fennec`ufr[1][r_]=Rescale[r,Fennec`layer[1],{0,1}];,
-Fennec`rfu[1][u_]=Rescale[u,{-1,1},Fennec`layer[1]];
-Fennec`ufr[1][r_]=Rescale[r,Fennec`layer[1],{-1,1}];
+If[Sprouts`zeroInDomain,
+Sprouts`rfu[1][u_]=Rescale[u,{0,1},Sprouts`layer[1]];
+Sprouts`ufr[1][r_]=Rescale[r,Sprouts`layer[1],{0,1}];,
+Sprouts`rfu[1][u_]=Rescale[u,{-1,1},Sprouts`layer[1]];
+Sprouts`ufr[1][r_]=Rescale[r,Sprouts`layer[1],{-1,1}];
 ];
-Fennec`drdu[1]=Fennec`rfu[1]'[u];
+Sprouts`drdu[1]=Sprouts`rfu[1]'[u];
 Table[
-Fennec`rfu[k][u_]=Rescale[u,{-1,1},Fennec`layer[k]];
-	Fennec`ufr[k][r_]=Rescale[r,Fennec`layer[k],{-1,1}];
-	Fennec`drdu[k]=Fennec`rfu[k]'[u]
-,{k,2,Fennec`nlayers}]
+Sprouts`rfu[k][u_]=Rescale[u,{-1,1},Sprouts`layer[k]];
+	Sprouts`ufr[k][r_]=Rescale[r,Sprouts`layer[k],{-1,1}];
+	Sprouts`drdu[k]=Sprouts`rfu[k]'[u]
+,{k,2,Sprouts`nlayers}]
 ];
 ]
 
@@ -168,11 +168,11 @@ Block[{xx=in["independentVars"],neq=Length[in["de"]],nbc=Length[in["bcs"]],\[Lam
 bck(* bc kept *),bcd(* bc dropped *),
 rp (*pattern for dependent variable*), Patternise
 },
-ClearAll["Fennec`*"];
-Fennec`domain=in["domain"];
-Fennec`nr=nr(* number of radial points *);
-Fennec`parameters=OptionValue[parameters];
-PartitionDomain[Sequence[{xx}~Join~Fennec`domain]];
+ClearAll["Sprouts`*"];
+Sprouts`domain=in["domain"];
+Sprouts`nr=nr(* number of radial points *);
+Sprouts`parameters=OptionValue[parameters];
+PartitionDomain[Sequence[{xx}~Join~Sprouts`domain]];
 
 Patternise[var___]:=Sequence@@(Pattern[#,_]&/@{var});
 rp=Patternise[Sequence@@xx];
@@ -183,66 +183,68 @@ Check[If[Length[xx]!=1,Message[AssembleMatrices::nvars]],Throw[$Failed]];
 
 (* read the set of coordinates *)
 Check[If[!MemberQ[{"Spherical","Spheroidal"},OptionValue[coordinates]],Message[AssembleMatrices::coord]],Throw[$Failed]];
-Fennec`coordinates=OptionValue[coordinates];
+Sprouts`coordinates=OptionValue[coordinates];
 
 (* get the maximum derivative *)
-Fennec`layout=Table[in["dependentVars"],{k,1,Fennec`nlayers}];
+Sprouts`layout=Table[in["dependentVars"],{k,1,Sprouts`nlayers}];
 Check[
 If[IntegerQ@OptionValue[maxDerivative],
-If[OptionValue[maxDerivative]>=Max[in["order"]],Fennec`ndiff=OptionValue[maxDerivative],Message[AssembleMatrices::ndiff,Max[in["order"]]]],
-If[SameQ[OptionValue[maxDerivative],Automatic],Fennec`ndiff=Max[in["order"]],Message[AssembleMatrices::ndiff]]
+If[OptionValue[maxDerivative]>=Max[in["order"]],Sprouts`ndiff=OptionValue[maxDerivative],Message[AssembleMatrices::ndiff,Max[in["order"]]]],
+If[SameQ[OptionValue[maxDerivative],Automatic],Sprouts`ndiff=Max[in["order"]],Message[AssembleMatrices::ndiff]]
 ],Throw[$Failed]
 ];
 
 (* assemble list of variables *)
-Fennec`listvar=Table[Table[Derivative[i][#][Sequence@@xx]&/@Fennec`layout[[k]],{i,0,Fennec`ndiff}],{k,1,Fennec`nlayers}];
+Sprouts`listvar=Table[Table[Derivative[i][#][Sequence@@xx]&/@Sprouts`layout[[k]],{i,0,Sprouts`ndiff}],{k,1,Sprouts`nlayers}];
 
 (* process equations *)
-Fennec`eq=Numerator@Together@Table[GatherBy[(in["de"]/.Equal[a_,b_]->a-b),Max[Internal`ProcessEquations`DifferentialOrder[#,xx,Fennec`layout[[1]]]]&],{k,1,Fennec`nlayers}];
-Fennec`\[ScriptCapitalO]d=Table[Max[Internal`ProcessEquations`DifferentialOrder[#,xx,Fennec`layout[[1]]]]&/@Fennec`eq[[k]],{k,1,Fennec`nlayers}];
+Sprouts`eq=Numerator@Together@Table[GatherBy[(in["de"]/.Equal[a_,b_]->a-b),Max[Internal`ProcessEquations`DifferentialOrder[#,xx,Sprouts`layout[[1]]]]&],{k,1,Sprouts`nlayers}];
+Sprouts`\[ScriptCapitalO]d=Table[Max[Internal`ProcessEquations`DifferentialOrder[#,xx,Sprouts`layout[[1]]]]&/@Sprouts`eq[[k]],{k,1,Sprouts`nlayers}];
 
 (* check and collect boundary conditions *)
-(*(*{bck,bcd}={Part[in["bcs"],Flatten@Position[MemberQ[Fennec`domain,#]&/@Flatten[(DeleteDuplicates[cullArgs[#,in["dependentVars"]]]&/@in["bcs"]),3],True]],
-Part[in["bcs"],Flatten@Position[!MemberQ[Fennec`domain,#]&/@Flatten[(DeleteDuplicates[cullArgs[#,in["dependentVars"]]]&/@in["bcs"]),3],True]]};
+(*(*{bck,bcd}={Part[in["bcs"],Flatten@Position[MemberQ[Sprouts`domain,#]&/@Flatten[(DeleteDuplicates[cullArgs[#,in["dependentVars"]]]&/@in["bcs"]),3],True]],
+Part[in["bcs"],Flatten@Position[!MemberQ[Sprouts`domain,#]&/@Flatten[(DeleteDuplicates[cullArgs[#,in["dependentVars"]]]&/@in["bcs"]),3],True]]};
 Check[If[!SameQ[bcd,{}],Print[bcd];Message[AssembleMatrices::cnobc]],Throw[$Failed]];*)*)
-{bck,bcd}={Part[in["bcs"],Flatten@Position[ContainsOnly[#,MinMax@Fennec`domain]&/@Flatten/@(cullArgs[#,in["dependentVars"]]&/@in["bcs"]),True]],
-Part[in["bcs"],Flatten@Position[!ContainsOnly[#,MinMax@Fennec`domain]&/@Flatten/@(cullArgs[#,in["dependentVars"]]&/@in["bcs"]),True]]};
+{bck,bcd}={Part[in["bcs"],Flatten@Position[ContainsOnly[#,MinMax@Sprouts`domain]&/@Flatten/@(cullArgs[#,in["dependentVars"]]&/@in["bcs"]),True]],
+Part[in["bcs"],Flatten@Position[!ContainsOnly[#,MinMax@Sprouts`domain]&/@Flatten/@(cullArgs[#,in["dependentVars"]]&/@in["bcs"]),True]]};
 Check[If[!SameQ[bcd,{}],Print[bcd];Message[AssembleMatrices::cnobc]],Throw[$Failed]];
 
-(*{Fennec`lbc,Fennec`rbc}={Part[in["bcs"],Flatten@Position[MemberQ[{Fennec`domain[[1]]},#]&/@Flatten[(DeleteDuplicates[cullArgs[#,in["dependentVars"]]]&/@bck),3],True]],
-Part[in["bcs"],Flatten@Position[!MemberQ[{Fennec`domain[[1]]},#]&/@Flatten[(DeleteDuplicates[cullArgs[#,in["dependentVars"]]]&/@bck),3],True]]}/.Equal[a_,b_]->a-b;
-If[!SameQ[Fennec`lbc,{}], (* check if lists of lbc are non empty *)
-Fennec`lbc={Fennec`lbc}/.f_[\[ScriptL]_,\[ScriptM]_][Fennec`domain[[1]]]->f[\[ScriptL],\[ScriptM]][r]
+(*{Sprouts`lbc,Sprouts`rbc}={Part[in["bcs"],Flatten@Position[MemberQ[{Sprouts`domain[[1]]},#]&/@Flatten[(DeleteDuplicates[cullArgs[#,in["dependentVars"]]]&/@bck),3],True]],
+Part[in["bcs"],Flatten@Position[!MemberQ[{Sprouts`domain[[1]]},#]&/@Flatten[(DeleteDuplicates[cullArgs[#,in["dependentVars"]]]&/@bck),3],True]]}/.Equal[a_,b_]->a-b;
+If[!SameQ[Sprouts`lbc,{}], (* check if lists of lbc are non empty *)
+Sprouts`lbc={Sprouts`lbc}/.f_[\[ScriptL]_,\[ScriptM]_][Sprouts`domain[[1]]]->f[\[ScriptL],\[ScriptM]][r]
 ];
-If[!SameQ[Fennec`rbc,{}], (* check if lists of rbc are non empty *)
-Fennec`rbc={Fennec`rbc}/.f_[\[ScriptL]_,\[ScriptM]_][Fennec`domain[[2]]]->f[\[ScriptL],\[ScriptM]][r];
+If[!SameQ[Sprouts`rbc,{}], (* check if lists of rbc are non empty *)
+Sprouts`rbc={Sprouts`rbc}/.f_[\[ScriptL]_,\[ScriptM]_][Sprouts`domain[[2]]]->f[\[ScriptL],\[ScriptM]][r];
 ];*)
-{Fennec`lbc,Fennec`rbc}={Part[in["bcs"],Flatten@Position[ContainsOnly[#,MinMax@Fennec`domain]&/@Flatten/@(cullArgs[#,in["dependentVars"]]&/@bck),True]],
-Part[in["bcs"],Flatten@Position[ContainsOnly[#,MinMax@Fennec`domain]&/@Flatten/@(cullArgs[#,in["dependentVars"]]&/@bck),True]]}/.Equal[a_,b_]->a-b;
-If[!SameQ[Fennec`lbc,{}], (* check if lists of lbc are non empty *)
-Fennec`lbc={Fennec`lbc}/.f_[\[ScriptL]_,\[ScriptM]_][Fennec`domain[[1]]]->f[\[ScriptL],\[ScriptM]][Sequence@@xx]/.Derivative[n_][f_[\[ScriptL]_,\[ScriptM]_]][Fennec`domain[[1]]]->Derivative[n][f[\[ScriptL],\[ScriptM]]][Sequence@@xx];
+{Sprouts`lbc,Sprouts`rbc}={
+Part[in["bcs"],Flatten@Position[ContainsOnly[#,{Min@Sprouts`domain}]&/@Flatten/@(cullArgs[{#},in["dependentVars"]]&/@bck),True]],
+Part[in["bcs"],Flatten@Position[ContainsOnly[#,{Max@Sprouts`domain}]&/@Flatten/@(cullArgs[{#},in["dependentVars"]]&/@bck),True]]
+}/.Equal[a_,b_]->a-b;
+If[!SameQ[Sprouts`lbc,{}], (* check if lists of lbc are non empty *)
+Sprouts`lbc={Sprouts`lbc}/.f_[\[ScriptL]_,\[ScriptM]_][Sprouts`domain[[1]]]->f[\[ScriptL],\[ScriptM]][Sequence@@xx]/.Derivative[n_][f_[\[ScriptL]_,\[ScriptM]_]][Sprouts`domain[[1]]]->Derivative[n][f[\[ScriptL],\[ScriptM]]][Sequence@@xx];
 ];
-If[!SameQ[Fennec`rbc,{}], (* check if lists of rbc are non empty *)
-Fennec`rbc={Fennec`rbc}/.f_[\[ScriptL]_,\[ScriptM]_][Fennec`domain[[-1]]]->f[\[ScriptL],\[ScriptM]][Sequence@@xx]/.Derivative[n_][f_[\[ScriptL]_,\[ScriptM]_]][Fennec`domain[[-1]]]->Derivative[n][f[\[ScriptL],\[ScriptM]]][Sequence@@xx];
+If[!SameQ[Sprouts`rbc,{}], (* check if lists of rbc are non empty *)
+Sprouts`rbc={Sprouts`rbc}/.f_[\[ScriptL]_,\[ScriptM]_][Sprouts`domain[[-1]]]->f[\[ScriptL],\[ScriptM]][Sequence@@xx]/.Derivative[n_][f_[\[ScriptL]_,\[ScriptM]_]][Sprouts`domain[[-1]]]->Derivative[n][f[\[ScriptL],\[ScriptM]]][Sequence@@xx];
 ];
 
 (* impose regularity condition at the centre of coordinates based on parity *)
 Check[
-If[Fennec`zeroInDomain,
+If[Sprouts`zeroInDomain,
 Echo["","regularity conditions will be enforced at r=0 based on indices of spherical harmonics"]
 Which[
-SameQ[Fennec`coordinates,"Spherical"],
+SameQ[Sprouts`coordinates,"Spherical"],
 (* indices of even and odd functions based on their \[ScriptL] *)
-Fennec`eid=Table[(* loop layers *)
-Position[Part[Fennec`listvar[[k]],1],f_[\[ScriptL]_,\[ScriptM]_][r_]/;EvenQ[\[ScriptL]]]//Flatten,{k,1,Fennec`nlayers}];
-Fennec`oid=Table[(* loop layers *)
-Position[Part[Fennec`listvar[[k]],1],f_[\[ScriptL]_,\[ScriptM]_][r_]/;OddQ[\[ScriptL]]]//Flatten,{k,1,Fennec`nlayers}];
+Sprouts`eid=Table[(* loop layers *)
+Position[Part[Sprouts`listvar[[k]],1],f_[\[ScriptL]_,\[ScriptM]_][r_]/;EvenQ[\[ScriptL]]]//Flatten,{k,1,Sprouts`nlayers}];
+Sprouts`oid=Table[(* loop layers *)
+Position[Part[Sprouts`listvar[[k]],1],f_[\[ScriptL]_,\[ScriptM]_][r_]/;OddQ[\[ScriptL]]]//Flatten,{k,1,Sprouts`nlayers}];
 ,
-SameQ[Fennec`coordinates,"Spheroidal"],
+SameQ[Sprouts`coordinates,"Spheroidal"],
 (* indices of even and odd functions based on their \[ScriptL] and \[ScriptM] *)
-Fennec`eid=Table[(* loop layers *)
-Position[Part[Fennec`listvar[[k]],1],f_[\[ScriptL]_,\[ScriptM]_][r_]/;EvenQ[\[ScriptL]+\[ScriptM]]]//Flatten,{k,1,Fennec`nlayers}];Fennec`oid=Table[(* loop layers *)
-Position[Part[Fennec`listvar[[k]],1],f_[\[ScriptL]_,\[ScriptM]_][r_]/;OddQ[\[ScriptL]+\[ScriptM]]]//Flatten,{k,1,Fennec`nlayers}];
+Sprouts`eid=Table[(* loop layers *)
+Position[Part[Sprouts`listvar[[k]],1],f_[\[ScriptL]_,\[ScriptM]_][r_]/;EvenQ[\[ScriptL]+\[ScriptM]]]//Flatten,{k,1,Sprouts`nlayers}];Sprouts`oid=Table[(* loop layers *)
+Position[Part[Sprouts`listvar[[k]],1],f_[\[ScriptL]_,\[ScriptM]_][r_]/;OddQ[\[ScriptL]+\[ScriptM]]]//Flatten,{k,1,Sprouts`nlayers}];
 ,
 True,Message[AssembleMatrices::errpy];
 ]
@@ -250,138 +252,147 @@ True,Message[AssembleMatrices::errpy];
 ,Throw[$Failed]];
 
 (* check if eigenvalue problem or Ax=b *)
-Fennec`\[Lambda]max=Max@(Exponent[#,\[Lambda]\[Lambda]]&/@Flatten[{Fennec`eq,Fennec`rbc}]);
-If[!SameQ[Fennec`\[Lambda]max,0],
-Fennec`evp=True;Echo[Row[{"(",Plus@@Table["A"<>ToString[i] ToString[\[Lambda]\[Lambda]]^i,{i,0,Fennec`\[Lambda]max}],")x"}]==0,"eigenvalue problem of type : "];,
-Fennec`evp=False;Echo["","linear problem of the type Ax=b"]
+Sprouts`\[Lambda]max=Max@(Exponent[#,\[Lambda]\[Lambda]]&/@Flatten[{Sprouts`eq,Sprouts`rbc}]);
+If[!SameQ[Sprouts`\[Lambda]max,0],
+Sprouts`evp=True;Echo[Row[{"(",Plus@@Table["A"<>ToString[i] ToString[\[Lambda]\[Lambda]]^i,{i,0,Sprouts`\[Lambda]max}],")x"}]==0,"eigenvalue problem of type : "];,
+Sprouts`evp=False;Echo["","linear problem of the type Ax=b"]
 ];
 
 (* echo the expected size of the output matrices *)
-If[Fennec`zeroInDomain,
-Fennec`nColTotal=Fennec`nr*(Total[Length/@Fennec`layout]-1/2 Length[First@Fennec`layout]),Fennec`nColTotal=Fennec`nr*Total[Length/@Fennec`layout]];
-Echo[ToString[Fennec`nColTotal]<>"x"<>ToString[Fennec`nColTotal],"Size of output matrices :"];
+If[Sprouts`zeroInDomain,
+Sprouts`nColTotal=Sprouts`nr*(Total[Length/@Sprouts`layout]-1/2 Length[First@Sprouts`layout]),Sprouts`nColTotal=Sprouts`nr*Total[Length/@Sprouts`layout]];
+Echo[ToString[Sprouts`nColTotal]<>"x"<>ToString[Sprouts`nColTotal],"Size of output matrices :"];
 
 (* get symbolic matrices of equations *)
-ClearAll[Fennec`coefeq,Fennec`rhseq,Fennec`coefeq\[Lambda]]
+ClearAll[Sprouts`coefeq,Sprouts`rhseq,Sprouts`coefeq\[Lambda]]
 Table[
 Table[
-(*With[{tab=Table[Fennec`coefeq[k,i,j][\[Lambda]___][r_],{j,0,Fennec`ndiff}],leftover=Fennec`rhseq[k,i][\[Lambda]___][r_]},*)
-With[{tab=Table[Fennec`coefeq[k,i,j][\[Lambda]___][rp],{j,0,Fennec`ndiff}],leftover=Fennec`rhseq[k,i][\[Lambda]___][rp]},
-{leftover,tab}=AllCoefficientArrays[Fennec`eq[[k,i]]//.Fennec`parameters,Sequence@@Fennec`listvar[[k]]];
+(*With[{tab=Table[Sprouts`coefeq[k,i,j][\[Lambda]___][r_],{j,0,Sprouts`ndiff}],leftover=Sprouts`rhseq[k,i][\[Lambda]___][r_]},*)
+With[{tab=Table[Sprouts`coefeq[k,i,j][\[Lambda]___][rp],{j,0,Sprouts`ndiff}],leftover=Sprouts`rhseq[k,i][\[Lambda]___][rp]},
+{leftover,tab}=AllCoefficientArrays[Sprouts`eq[[k,i]]//.Sprouts`parameters,Sequence@@Sprouts`listvar[[k]]];
 ]
-,{i,1,Length[Fennec`eq[[k]]]}];
-(*Table[Fennec`coefeq\[Lambda][k,i,j,l][r_]=Coefficient[#,\[Lambda]\[Lambda],l]&@Fennec`coefeq[k,i,j][\[Lambda]\[Lambda]][r],{l,0,Fennec`\[Lambda]max},*)
-Table[Fennec`coefeq\[Lambda][k,i,j,l][rp]=Coefficient[#,\[Lambda]\[Lambda],l]&@Fennec`coefeq[k,i,j][\[Lambda]\[Lambda]][Sequence@@xx],{l,0,Fennec`\[Lambda]max},
-{j,0,Fennec`ndiff},{i,1,Length[Fennec`eq[[k]]]}];
-,{k,1,Fennec`nlayers}];
+,{i,1,Length[Sprouts`eq[[k]]]}];
+(*Table[Sprouts`coefeq\[Lambda][k,i,j,l][r_]=Coefficient[#,\[Lambda]\[Lambda],l]&@Sprouts`coefeq[k,i,j][\[Lambda]\[Lambda]][r],{l,0,Sprouts`\[Lambda]max},*)
+Table[Sprouts`coefeq\[Lambda][k,i,j,l][rp]=Coefficient[#,\[Lambda]\[Lambda],l]&@Sprouts`coefeq[k,i,j][\[Lambda]\[Lambda]][Sequence@@xx],{l,0,Sprouts`\[Lambda]max},
+{j,0,Sprouts`ndiff},{i,1,Length[Sprouts`eq[[k]]]}];
+,{k,1,Sprouts`nlayers}];
 
-(* get symbolic matrices of boundary conditions *)ClearAll[Fennec`coefrbc,Fennec`rhsrbc,Fennec`coefrbc\[Lambda],Fennec`coeflbc,Fennec`rhslbc,Fennec`coeflbc\[Lambda]];
+(* get symbolic matrices of boundary conditions *)ClearAll[Sprouts`coefrbc,Sprouts`rhsrbc,Sprouts`coefrbc\[Lambda],Sprouts`coeflbc,Sprouts`rhslbc,Sprouts`coeflbc\[Lambda]];
 Table[
-With[{tab=Table[Fennec`coefrbc[i,j][\[Lambda]___][r_],{j,0,Fennec`ndiff}],leftover=Fennec`rhsrbc[i][\[Lambda]___][r_]},{leftover,tab}=AllCoefficientArrays[Fennec`rbc[[i]]//.Fennec`parameters,Sequence@@Fennec`listvar[[-1]]]],{i,1,Length[Fennec`rbc]}];Table[Fennec`coefrbc\[Lambda][i,j,l][r_]=Coefficient[#,\[Lambda]\[Lambda],l]&@Fennec`coefrbc[i,j][\[Lambda]\[Lambda]][r],{l,0,Fennec`\[Lambda]max},{j,0,Fennec`ndiff},{i,1,Length[Fennec`rbc]}];If[!Fennec`zeroInDomain,
+With[{tab=Table[Sprouts`coefrbc[i,j][\[Lambda]___][r_],{j,0,Sprouts`ndiff}],leftover=Sprouts`rhsrbc[i][\[Lambda]___][r_]},{leftover,tab}=AllCoefficientArrays[Sprouts`rbc[[i]]//.Sprouts`parameters,Sequence@@Sprouts`listvar[[-1]]]],{i,1,Length[Sprouts`rbc]}];Table[Sprouts`coefrbc\[Lambda][i,j,l][r_]=Coefficient[#,\[Lambda]\[Lambda],l]&@Sprouts`coefrbc[i,j][\[Lambda]\[Lambda]][r],{l,0,Sprouts`\[Lambda]max},{j,0,Sprouts`ndiff},{i,1,Length[Sprouts`rbc]}];If[!Sprouts`zeroInDomain,
 Table[
-With[{tab=Table[Fennec`coeflbc[i,j][\[Lambda]___][r_],{j,0,Fennec`ndiff}],leftover=Fennec`rhslbc[i][\[Lambda]___][r_]},{leftover,tab}=AllCoefficientArrays[Fennec`lbc[[i]]//.Fennec`parameters,Sequence@@Fennec`listvar[[1]]]],{i,1,Length[Fennec`lbc]}];Table[Fennec`coeflbc\[Lambda][i,j,l][r_]=Coefficient[#,\[Lambda]\[Lambda],l]&@Fennec`coeflbc[i,j][\[Lambda]\[Lambda]][r],{l,0,Fennec`\[Lambda]max},{j,0,Fennec`ndiff},{i,1,Length[Fennec`lbc]}]
+With[{tab=Table[Sprouts`coeflbc[i,j][\[Lambda]___][r_],{j,0,Sprouts`ndiff}],leftover=Sprouts`rhslbc[i][\[Lambda]___][r_]},{leftover,tab}=AllCoefficientArrays[Sprouts`lbc[[i]]//.Sprouts`parameters,Sequence@@Sprouts`listvar[[1]]]],{i,1,Length[Sprouts`lbc]}];Table[Sprouts`coeflbc\[Lambda][i,j,l][r_]=Coefficient[#,\[Lambda]\[Lambda],l]&@Sprouts`coeflbc[i,j][\[Lambda]\[Lambda]][r],{l,0,Sprouts`\[Lambda]max},{j,0,Sprouts`ndiff},{i,1,Length[Sprouts`lbc]}]
 ];
 
 (* assemble large discretised system without boundary conditions *)
-ClearAll[Fennec`Abulk]
+ClearAll[Sprouts`Abulk]
 Table[
-Fennec`Abulk[\[Lambda],layer]=
+Sprouts`Abulk[\[Lambda],layer]=
 Plus@@Table[
 Join@@
 Table[(*! always give list of even indices first in option UseParity*)
-If[Fennec`zeroInDomain&&SameQ[layer,1],
-SetOptions[MakeMatD,UseParity->{True,First@Fennec`eid,First@Fennec`oid}],
+If[Sprouts`zeroInDomain&&SameQ[layer,1],
+SetOptions[MakeMatD,UseParity->{True,First@Sprouts`eid,First@Sprouts`oid}],
 SetOptions[MakeMatD,UseParity->{False}]
 ];
-MakeMatD[(Fennec`drdu[layer])^-j Fennec`coefeq\[Lambda][layer,i,j,\[Lambda]][Fennec`rfu[layer][u]],u,j,Fennec`\[ScriptCapitalO]d[[layer,i]],Fennec`nr]
-,{i,1,Length[Fennec`eq[[layer]]]}]
-,{j,0,Fennec`ndiff}]
-,{\[Lambda],0,Fennec`\[Lambda]max},{layer,1,Fennec`nlayers}];
+MakeMatD[(Sprouts`drdu[layer])^-j Sprouts`coefeq\[Lambda][layer,i,j,\[Lambda]][Sprouts`rfu[layer][u]],u,j,Sprouts`\[ScriptCapitalO]d[[layer,i]],Sprouts`nr]
+,{i,1,Length[Sprouts`eq[[layer]]]}]
+,{j,0,Sprouts`ndiff}]
+,{\[Lambda],0,Sprouts`\[Lambda]max},{layer,1,Sprouts`nlayers}];
 
 (* assemble row matrices representing boundary conditions *)
-ClearAll[Fennec`Arbc,Fennec`Albc]
+ClearAll[Sprouts`Arbc,Sprouts`Albc]
 Table[
-Fennec`Arbc[l]=
+Sprouts`Arbc[l]=
 Plus@@Table[
 Join@@
 Table[(*! always give list of even indices first in option UseParity*)
-If[Fennec`zeroInDomain&&SameQ[Fennec`nlayers,1],
-SetOptions[MakeMatbc,UseParity->{True,First@Fennec`eid,First@Fennec`oid}],
+If[Sprouts`zeroInDomain&&SameQ[Sprouts`nlayers,1],
+SetOptions[MakeMatbc,UseParity->{True,First@Sprouts`eid,First@Sprouts`oid}],
 SetOptions[MakeMatbc,UseParity->{False}]
 ];
-MakeMatbc[(Fennec`drdu[Fennec`nlayers])^-j Fennec`coefrbc\[Lambda][i,j,l][Fennec`rfu[Fennec`nlayers][1]],j,Fennec`nr,Side->"right"]
-,{i,1,Length[Fennec`rbc]}]
-,{j,0,Fennec`ndiff}]
-,{l,0,Fennec`\[Lambda]max}];
+MakeMatbc[(Sprouts`drdu[Sprouts`nlayers])^-j Sprouts`coefrbc\[Lambda][i,j,l][Sprouts`rfu[Sprouts`nlayers][1]],j,Sprouts`nr,Side->"right"]
+,{i,1,Length[Sprouts`rbc]}]
+,{j,0,Sprouts`ndiff}]
+,{l,0,Sprouts`\[Lambda]max}];
 (* compute left bc only if 0 is not in the domain *)
-If[!Fennec`zeroInDomain,
+If[!Sprouts`zeroInDomain,
 SetOptions[MakeMatbc,UseParity->{False}];
 Table[
-Fennec`Albc[l]=
+Sprouts`Albc[l]=
 Plus@@Table[
-Join@@Table[(*! always give list of even indices first in option UseParity*)MakeMatbc[(Fennec`drdu[1])^-j Fennec`coeflbc\[Lambda][i,j,l][Fennec`rfu[1][-1]],j,Fennec`nr,Side->"left"]
-,{i,1,Length[Fennec`lbc]}]
-,{j,0,Fennec`ndiff}]
-,{l,0,Fennec`\[Lambda]max}];
+Join@@Table[(*! always give list of even indices first in option UseParity*)MakeMatbc[(Sprouts`drdu[1])^-j Sprouts`coeflbc\[Lambda][i,j,l][Sprouts`rfu[1][-1]],j,Sprouts`nr,Side->"left"]
+,{i,1,Length[Sprouts`lbc]}]
+,{j,0,Sprouts`ndiff}]
+,{l,0,Sprouts`\[Lambda]max}];
 ];
 
 (* pad block matrices to final number of columns *)
-ClearAll[Fennec`AbulkPadded]
+ClearAll[Sprouts`AbulkPadded]
 Table[
-Fennec`AbulkPadded[\[Lambda],k]=(*Fennec`Abulk[\[Lambda],k]*)
+Sprouts`AbulkPadded[\[Lambda],k]=(*Sprouts`Abulk[\[Lambda],k]*)
 Block[{pos},
-pos=Total@Table[Dimensions[Fennec`Abulk[0,kk]][[2]],{kk,1,k-1}];
-SparseArray[Band[{0,pos}+1]->Fennec`Abulk[\[Lambda],k],{Length[Fennec`Abulk[\[Lambda],k]],Fennec`nColTotal}]
+pos=Total@Table[Dimensions[Sprouts`Abulk[0,kk]][[2]],{kk,1,k-1}];
+SparseArray[Band[{0,pos}+1]->Sprouts`Abulk[\[Lambda],k],{Length[Sprouts`Abulk[\[Lambda],k]],Sprouts`nColTotal}]
 ]
-,{k,1,Fennec`nlayers},{\[Lambda],0,Fennec`\[Lambda]max}];
-ClearAll[Fennec`ArbcPadded,Fennec`AlbcPadded]
+,{k,1,Sprouts`nlayers},{\[Lambda],0,Sprouts`\[Lambda]max}];
+ClearAll[Sprouts`ArbcPadded,Sprouts`AlbcPadded]
 Table[
-Fennec`ArbcPadded[\[Lambda]]=(*Fennec`Arbc[\[Lambda]]*)
+Sprouts`ArbcPadded[\[Lambda]]=(*Sprouts`Arbc[\[Lambda]]*)
 Block[{pos},
-pos=Total@Table[Dimensions[Fennec`Abulk[0,k]][[2]],{k,1,Fennec`nlayers-1}];
-SparseArray[Band[{0,pos}+1]->Fennec`Arbc[\[Lambda]],{Length[Fennec`Arbc[\[Lambda]]],Fennec`nColTotal}]
+pos=Total@Table[Dimensions[Sprouts`Abulk[0,k]][[2]],{k,1,Sprouts`nlayers-1}];
+SparseArray[Band[{0,pos}+1]->Sprouts`Arbc[\[Lambda]],{Length[Sprouts`Arbc[\[Lambda]]],Sprouts`nColTotal}]
 ]
-,{\[Lambda],0,Fennec`\[Lambda]max}];
-If[!Fennec`zeroInDomain,
+,{\[Lambda],0,Sprouts`\[Lambda]max}];
+If[!Sprouts`zeroInDomain,
 Table[
-Fennec`AlbcPadded[\[Lambda]]=(*Fennec`Albc[\[Lambda]]*)
-SparseArray[Band[{1,1}]->Fennec`Albc[\[Lambda]],{Length[Fennec`Albc[\[Lambda]]],Fennec`nColTotal}]
-,{\[Lambda],0,Fennec`\[Lambda]max}];
+Sprouts`AlbcPadded[\[Lambda]]=(*Sprouts`Albc[\[Lambda]]*)
+SparseArray[Band[{1,1}]->Sprouts`Albc[\[Lambda]],{Length[Sprouts`Albc[\[Lambda]]],Sprouts`nColTotal}]
+,{\[Lambda],0,Sprouts`\[Lambda]max}];
 ];
 
-Table[
-Fennec`Amat[\[Lambda]]=
-If[Fennec`zeroInDomain,
-(Join@@Riffle[Table[Fennec`AbulkPadded[\[Lambda],layer],{layer,1,Fennec`nlayers}],Table[Fennec`AjcPadded[\[Lambda],layer],{layer,1,Fennec`nlayers-1}]])~Join~(Fennec`ArbcPadded[\[Lambda]]),
-(Fennec`AlbcPadded[\[Lambda]])~Join~(Join@@Riffle[Table[Fennec`AbulkPadded[\[Lambda],layer],{layer,1,Fennec`nlayers}],Table[Fennec`AjcPadded[\[Lambda],layer],{layer,1,Fennec`nlayers-1}]])~Join~(Fennec`ArbcPadded[\[Lambda]])
+(*Table[
+Sprouts`Amat[\[Lambda]]=
+If[Sprouts`zeroInDomain,
+(Join@@Riffle[Table[Sprouts`AbulkPadded[\[Lambda],layer],{layer,1,Sprouts`nlayers}],Table[Sprouts`AjcPadded[\[Lambda],layer],{layer,1,Sprouts`nlayers-1}]])~Join~(Sprouts`ArbcPadded[\[Lambda]]),
+(Sprouts`AlbcPadded[\[Lambda]])~Join~(Join@@Riffle[Table[Sprouts`AbulkPadded[\[Lambda],layer],{layer,1,Sprouts`nlayers}],Table[Sprouts`AjcPadded[\[Lambda],layer],{layer,1,Sprouts`nlayers-1}]])~Join~(Sprouts`ArbcPadded[\[Lambda]])
 ]
-,{\[Lambda],0,Fennec`\[Lambda]max}];
+,{\[Lambda],0,Sprouts`\[Lambda]max}];*)
+
+Table[
+Sprouts`Amat[\[Lambda]]=
+If[Sprouts`zeroInDomain,
+(Sprouts`ArbcPadded[\[Lambda]])~Join~(Join@@Riffle[Table[Sprouts`AbulkPadded[\[Lambda],layer],{layer,1,Sprouts`nlayers}],Table[Sprouts`AjcPadded[\[Lambda],layer],{layer,1,Sprouts`nlayers-1}]]),
+(Sprouts`AlbcPadded[\[Lambda]])~Join~(Sprouts`ArbcPadded[\[Lambda]])~Join~(Join@@Riffle[Table[Sprouts`AbulkPadded[\[Lambda],layer],{layer,1,Sprouts`nlayers}],Table[Sprouts`AjcPadded[\[Lambda],layer],{layer,1,Sprouts`nlayers-1}]])
+]
+,{\[Lambda],0,Sprouts`\[Lambda]max}];
 
 (* assemble bulk of rhs array b if problem of type Ax=b *)
-If[!Fennec`evp,
+If[!Sprouts`evp,
 Table[
-If[Fennec`zeroInDomain&&SameQ[layer,1],
-	SetOptions[MakeVec,UseParity->{True,Fennec`eid,Fennec`oid}],
+If[Sprouts`zeroInDomain&&SameQ[layer,1],
+	SetOptions[MakeVec,UseParity->{True,Sprouts`eid,Sprouts`oid}],
 	SetOptions[MakeVec,UseParity->{False}]
 	];
-Fennec`bbulk[layer]=SparseArray[Join@@Table[
-MakeVec[Fennec`rhseq[layer,i][][Fennec`rfu[layer][u]],u,Fennec`\[ScriptCapitalO]d[[layer,i]],Fennec`nr]
-,{i,1,Length[Fennec`eq[[layer]]]}]];
-,{layer,1,Fennec`nlayers}];
-Fennec`brbc=Join@@Table[First[Fennec`rhsrbc[i][][Fennec`rfu[Fennec`nlayers][1(*Last@Fennec`layer[Fennec`nlayers]*)]]],{i,1,Length[Fennec`rbc]}];If[!Fennec`zeroInDomain,Fennec`blbc=Join@@Table[First[Fennec`rhslbc[i][][Fennec`rfu[1][-1(*First@Fennec`layer[1]*)]]],{i,1,Length[Fennec`lbc]}];
+Sprouts`bbulk[layer]=SparseArray[Join@@Table[
+MakeVec[Sprouts`rhseq[layer,i][][Sprouts`rfu[layer][u]],u,Sprouts`\[ScriptCapitalO]d[[layer,i]],Sprouts`nr]
+,{i,1,Length[Sprouts`eq[[layer]]]}]];
+,{layer,1,Sprouts`nlayers}];
+Sprouts`brbc=Join@@Table[First[Sprouts`rhsrbc[i][][Sprouts`rfu[Sprouts`nlayers][1(*Last@Sprouts`layer[Sprouts`nlayers]*)]]],{i,1,Length[Sprouts`rbc]}];If[!Sprouts`zeroInDomain,Sprouts`blbc=Join@@Table[First[Sprouts`rhslbc[i][][Sprouts`rfu[1][-1(*First@Sprouts`layer[1]*)]]],{i,1,Length[Sprouts`lbc]}];
 ];
-If[!SameQ[Fennec`nlayers,1],
+If[!SameQ[Sprouts`nlayers,1],
 Table[
-Fennec`bjc[layer]=Join@@Table[SparseArray@First[(Normal[Fennec`rhsjc[layer,i,"left"][][r]]/.((#->0)&/@Flatten@Fennec`listvar))/.r->Fennec`rfu[layer][1(*Last@Fennec`layer[layer]*)]],{i,1,Length[Fennec`jc[[layer]]]}]
-,{layer,1,Fennec`nlayers-1}]
+Sprouts`bjc[layer]=Join@@Table[SparseArray@First[(Normal[Sprouts`rhsjc[layer,i,"left"][][r]]/.((#->0)&/@Flatten@Sprouts`listvar))/.r->Sprouts`rfu[layer][1(*Last@Sprouts`layer[layer]*)]],{i,1,Length[Sprouts`jc[[layer]]]}]
+,{layer,1,Sprouts`nlayers-1}]
 ];
-Fennec`bvec=-SparseArray@If[Fennec`zeroInDomain,(Join@Flatten@Riffle[Table[Fennec`bbulk[layer],{layer,1,Fennec`nlayers}],Table[Fennec`bjc[layer],{layer,1,Fennec`nlayers-1}]])~Join~(Fennec`brbc),(Fennec`blbc)~Join~(Join@Flatten@Riffle[Table[Fennec`bbulk[layer],{layer,1,Fennec`nlayers}],Table[Fennec`bjc[layer],{layer,1,Fennec`nlayers-1}]])~Join~(Fennec`brbc)
+(*Sprouts`bvec=-SparseArray@If[Sprouts`zeroInDomain,(Join@Flatten@Riffle[Table[Sprouts`bbulk[layer],{layer,1,Sprouts`nlayers}],Table[Sprouts`bjc[layer],{layer,1,Sprouts`nlayers-1}]])~Join~(Sprouts`brbc),(Sprouts`blbc)~Join~(Join@Flatten@Riffle[Table[Sprouts`bbulk[layer],{layer,1,Sprouts`nlayers}],Table[Sprouts`bjc[layer],{layer,1,Sprouts`nlayers-1}]])~Join~(Sprouts`brbc)*)
+Sprouts`bvec=-SparseArray@If[Sprouts`zeroInDomain,(Sprouts`brbc)~Join~(Join@Flatten@Riffle[Table[Sprouts`bbulk[layer],{layer,1,Sprouts`nlayers}],Table[Sprouts`bjc[layer],{layer,1,Sprouts`nlayers-1}]]),(Sprouts`blbc)~Join~(Sprouts`brbc)~Join~(Join@Flatten@Riffle[Table[Sprouts`bbulk[layer],{layer,1,Sprouts`nlayers}],Table[Sprouts`bjc[layer],{layer,1,Sprouts`nlayers-1}]])
 ];
 ];
 
-If[!Fennec`evp,
-{Fennec`bvec}~Join~Table[Fennec`Amat[\[Lambda]],{\[Lambda],0,Fennec`\[Lambda]max}],
-Table[Fennec`Amat[\[Lambda]],{\[Lambda],0,Fennec`\[Lambda]max}]
+If[!Sprouts`evp,
+{Sprouts`bvec}~Join~Table[Sprouts`Amat[\[Lambda]],{\[Lambda],0,Sprouts`\[Lambda]max}],
+Table[Sprouts`Amat[\[Lambda]],{\[Lambda],0,Sprouts`\[Lambda]max}]
 
 (* catch *)
 ]
@@ -433,20 +444,20 @@ Block[{multmat,diffmat,op,mat,chop=Expand@Simplify[expr//Chop],(*options*)ip,ndi
 ndiff=If[SameQ[OptionValue[MaximumDerivative],None],dermax,OptionValue[MaximumDerivative]];
 diffmat=D\[Lambda][der,n];
 	(*multmat=Dot@@Table[S\[Lambda][m,n],{m,dermax-1,der,-1}].M\[Lambda][der,n,expr,x];*)
-	multmat=Dot@@Table[S\[Lambda][m,n],{m,ndiff-1,der,-1}].M\[Lambda][der,n,expr,x];
+	multmat=Dot@@Table[S\[Lambda][m,n],{m,ndiff-1,der,-1}] . M\[Lambda][der,n,expr,x];
 	If[ip!=0,
 		(*op=(1-2Mod[der,2])*Piecewise[{{1,SameQ[expr,expr/.x->-x]},{-1,SameQ[expr,-expr/.x->-x]}}];*)
 		op=(1-2Mod[der,2])*Piecewise[{{1,SameQ[chop,chop/.x->-x]},{-1,SameQ[chop,-chop/.x->-x]}}];
 (*		Print[ip,op];*)
 		If[Abs[op]!=1,Print[op," ",chop]];
 		Which[
-			ip==1&&op==1,mat=Drop[Drop[(multmat.diffmat)\[Transpose],{2,n,2}]\[Transpose],{2,n,2}],
-			ip==1&&op==-1,mat=Drop[Drop[(multmat.diffmat)\[Transpose],{2,n,2}]\[Transpose],{1,n,2}],
-			ip==-1&&op==-1,mat=Drop[Drop[(multmat.diffmat)\[Transpose],{1,n,2}]\[Transpose],{2,n,2}],
-			ip==-1&&op==1,mat=Drop[Drop[(multmat.diffmat)\[Transpose],{1,n,2}]\[Transpose],{1,n,2}]
+			ip==1&&op==1,mat=Drop[Drop[(multmat . diffmat)\[Transpose],{2,n,2}]\[Transpose],{2,n,2}],
+			ip==1&&op==-1,mat=Drop[Drop[(multmat . diffmat)\[Transpose],{2,n,2}]\[Transpose],{1,n,2}],
+			ip==-1&&op==-1,mat=Drop[Drop[(multmat . diffmat)\[Transpose],{1,n,2}]\[Transpose],{2,n,2}],
+			ip==-1&&op==1,mat=Drop[Drop[(multmat . diffmat)\[Transpose],{1,n,2}]\[Transpose],{1,n,2}]
 		];
 		Drop[mat,-Floor[dermax/2]],
-		Drop[multmat.diffmat,-dermax]
+		Drop[multmat . diffmat,-dermax]
 	]
 ];
 
@@ -505,10 +516,12 @@ If[parityflag,
 (* parity flag is up *)
 (*eid=First@Rest@OptionValue[UseParity];
 oid=Last@Rest@OptionValue[UseParity];*)
-	length=n/2;dim=length-dermax/2,
+	length=n/2;dim=length-Floor[dermax/2],
 	length=n;dim=length-dermax];
+(*	length=n/2;dim=length-ndiff/2,
+	length=n;dim=length-ndiff];	*)
 tab=
-Table[ind=First[elem[[i,1]]];entry=elem[[i,2]];array=Dot@@Table[S\[Lambda][m,n],{m,ndiff-1,0,-1}].NChebckf[entry,x,n-1];chop=Expand@Simplify[entry//Chop];
+Table[ind=First[elem[[i,1]]];entry=elem[[i,2]];array=Dot@@Table[S\[Lambda][m,n],{m,ndiff-1,0,-1}] . NChebckf[entry,x,n-1];chop=Expand@Simplify[entry//Chop];
 If[parityflag,op=Piecewise[{{1,SameQ[chop,chop/.x->-x]},{-1,SameQ[chop,-chop/.x->-x]}}];
 Which[
 op==1,array=Drop[Drop[array,{2,n,2}],-Floor[dermax/2]],
@@ -518,10 +531,10 @@ array=Drop[array,-dermax]
 ];
 Band[(ind-1)*dim+1,Automatic]->array
 ,{i,1,size}];
-	If[size!=0,
-		SparseArray[tab,Length[list]dim],
-		SparseArray[{},Length[list]dim]
-	]
+If[size!=0,
+	SparseArray[tab,Length[list]dim],
+	SparseArray[{},Length[list]dim]
+]
 ];
 
 
@@ -543,7 +556,7 @@ length=n;dim=length-dermax
 ];
 tab=
 Table[ind1=First[elem[[i,1]]];ind2=Last[elem[[i,1]]];entry=elem[[i,2]];
-array=Dot@@Table[S\[Lambda][m,n],{m,ndiff-1,0,-1}].NChebckf[entry,x,n-1];chop=Expand@Simplify[entry//Chop];If[parityflag,op=Piecewise[{{1,SameQ[chop,chop/.x->-x]},{-1,SameQ[chop,-chop/.x->-x]}}];
+array=Dot@@Table[S\[Lambda][m,n],{m,ndiff-1,0,-1}] . NChebckf[entry,x,n-1];chop=Expand@Simplify[entry//Chop];If[parityflag,op=Piecewise[{{1,SameQ[chop,chop/.x->-x]},{-1,SameQ[chop,-chop/.x->-x]}}];
 Which[
 op==1,array=Drop[Drop[array,{2,n,2}],-Floor[dermax/2]],
 op==-1,array=Drop[Drop[array,{1,n,2}],-Floor[dermax/2]]
