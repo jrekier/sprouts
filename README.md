@@ -7,7 +7,7 @@ Sprouts is a symbolic package written for *Wolfram Mathematica* that parses list
 
 ### features
 - Fully spectral decomposition based on Gegenbauer (ultraspherical) polynomials in the radial direction
-- Can deal with inhomogeneous problems of the form: $A\cdot\mathbf{x}=\mathbf{b}$, as well as *polynomial eigenvalue problems* of the form: $(A_0+A_1\lambda+A_2\lambda^2+\dots)\cdot\mathb{x}=0$.
+- Can deal with inhomogeneous problems of the form: $A\cdot\mathbf{x}=\mathbf{b}$, as well as *polynomial eigenvalue problems* of the form: $(A_0+A_1\lambda+A_2\lambda^2+\dots)\cdot\mathbf{x}=0$.
 
 ## Installation
 
