@@ -6,13 +6,8 @@ a **S**ymbolic **P**arser for **ROU**nd objec**TS**
 Sprouts is a symbolic package written for *Wolfram Mathematica* that parses lists of ODEs corresponding to the spherical harmonics components of PDEs in spherical (and oblate spheroidal) coordinates into a set of discretized matrices operating on the array of Chebyshev coefficients representing the set of functions to solve for. 
 
 ### features
-<<<<<<< HEAD
-- Fully spectral decomposition based on Gegenbauer (ultraspherical) polynomials in the radial direction
-- Can deal with inhomogeneous problems of the form: $A\cdot\mathbf{x}=\mathbf{b}$, as well as *polynomial eigenvalue problems* of the form: $(A_0+A_1\lambda+A_2\lambda^2+\dots)\cdot\mathbf{x}=0$.
-=======
 - Fully spectral decomposition based on Gegenbauer (ultraspherical) polynomials in the radial direction (see [this paper](https://doi.org/10.1137/120865458))
 - Can deal with inhomogeneous problems of the form: $A\cdot\mathbf{x}=\mathbf{b}$, as well as *polynomial eigenvalue problems* of the form: $(A_0+A_1\lambda+A_2\lambda^2+\dots)\cdot\mathbf{x}=0$
->>>>>>> 079631e (fixes typo)
 
 ## Installation
 
