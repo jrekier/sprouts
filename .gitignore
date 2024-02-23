@@ -6,4 +6,5 @@ test.nb
 formulae/
 solver/
 test/
-A*.mtx
+**/*.mtx
+**/*.dat
