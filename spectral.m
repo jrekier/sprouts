@@ -100,7 +100,7 @@ ICheb[ck_?VectorQ,{a_,b_}]:=
 Module[{c=ck,Ck,C0,n=Length[ck]}, 
 c[[1]]*=2;
 Ck=Table[(c[[i-1]]-c[[i+1]])/(2(i-1)),{i,2,n-1}]~Join~{c[[n-1]]/(2(n-1))};
-C0=Ck.Table[(-1)^i,{i,2,n}];
+C0=Ck . Table[(-1)^i,{i,2,n}];
 ((b-a)/2)({C0}~Join~Ck)
 ]
 
@@ -156,7 +156,8 @@ M\[Lambda][\[Lambda]_Integer,n_Integer,expr_/;MatchQ[expr,Plus[_,__]],var_]:=M\[
 M\[Lambda][\[Lambda]_Integer,n_Integer,Times[c_?NumericQ, expr_],var_]:=c M\[Lambda][\[Lambda],n,Expand[expr],var]
 M\[Lambda][\[Lambda]_Integer,n_Integer,expr_?NumericQ,var_]:=SparseArray[Band[{1,1}]->expr,n]
 M\[Lambda][\[Lambda]_Integer,n_Integer,expr_,var_]:=M\[Lambda][\[Lambda],n,Expand[expr],var]=
-Module[{ck=N[Dot@@Table[S\[Lambda][l,n],{l,\[Lambda]-1,0,-1}].NChebckf[expr,var,n-1]]},
+Module[{ck=N[Dot@@Table[S\[Lambda][l,n],{l,\[Lambda]-1,0,-1}] . NChebckf[expr,var,n-1]]},
+(*Print["Hello!"];(*Print[NChebckf[expr,var,n-1]];*)Print[var];Print[expr];*)
 M\[Lambda][\[Lambda],ck]
 ];
 M\[Lambda][\[Lambda]_Integer,ak:{(__Real?MachineNumberQ|__Complex?MachineNumberQ)}]:=
@@ -218,8 +219,8 @@ mat
 M\[Lambda]ChebN[f_,x_,N_Integer,\[Lambda]_Integer,n_Integer]:=
 Module[{SN\[Lambda],S\[Lambda]0,ack},
 ack=NChebckf[f,x,n-1];
-SN\[Lambda]=Dot@@Table[S\[Lambda][m-1,n],{m,N,\[Lambda]+1,-1}].
-M\[Lambda][\[Lambda],Dot@@Table[S\[Lambda][m-1,n],{m,\[Lambda],1,-1}].ack]
+SN\[Lambda]=Dot@@Table[S\[Lambda][m-1,n],{m,N,\[Lambda]+1,-1}] .
+M\[Lambda][\[Lambda],Dot@@Table[S\[Lambda][m-1,n],{m,\[Lambda],1,-1}] . ack]
 ]
 
 

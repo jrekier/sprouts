@@ -201,6 +201,9 @@ Sprouts`listvar=Table[Table[Derivative[i][#][Sequence@@xx]&/@Sprouts`layout[[k]]
 Sprouts`eq=Numerator@Together@Table[GatherBy[(in["de"]/.Equal[a_,b_]->a-b),Max[Internal`ProcessEquations`DifferentialOrder[#,xx,Sprouts`layout[[1]]]]&],{k,1,Sprouts`nlayers}];
 Sprouts`\[ScriptCapitalO]d=Table[Max[Internal`ProcessEquations`DifferentialOrder[#,xx,Sprouts`layout[[1]]]]&/@Sprouts`eq[[k]],{k,1,Sprouts`nlayers}];
 
+(* hack to test Ogilvie's friction damping *)
+(*Sprouts`\[ScriptCapitalO]d={{2,0}};*)
+
 (* check and collect boundary conditions *)
 (*(*{bck,bcd}={Part[in["bcs"],Flatten@Position[MemberQ[Sprouts`domain,#]&/@Flatten[(DeleteDuplicates[cullArgs[#,in["dependentVars"]]]&/@in["bcs"]),3],True]],
 Part[in["bcs"],Flatten@Position[!MemberQ[Sprouts`domain,#]&/@Flatten[(DeleteDuplicates[cullArgs[#,in["dependentVars"]]]&/@in["bcs"]),3],True]]};
@@ -263,23 +266,44 @@ If[Sprouts`zeroInDomain,
 Sprouts`nColTotal=Sprouts`nr*(Total[Length/@Sprouts`layout]-1/2 Length[First@Sprouts`layout]),Sprouts`nColTotal=Sprouts`nr*Total[Length/@Sprouts`layout]];
 Echo[ToString[Sprouts`nColTotal]<>"x"<>ToString[Sprouts`nColTotal],"Size of output matrices :"];
 
-(* get symbolic matrices of equations *)
-ClearAll[Sprouts`coefeq,Sprouts`rhseq,Sprouts`coefeq\[Lambda]]
+(*(* get symbolic matrices of equations *)
+ClearAll[Sprouts`coefeq,Sprouts`rhseq,Sprouts`coefeq\[Lambda]];
 Table[
 Table[
 (*With[{tab=Table[Sprouts`coefeq[k,i,j][\[Lambda]___][r_],{j,0,Sprouts`ndiff}],leftover=Sprouts`rhseq[k,i][\[Lambda]___][r_]},*)
-With[{tab=Table[Sprouts`coefeq[k,i,j][\[Lambda]___][rp],{j,0,Sprouts`ndiff}],leftover=Sprouts`rhseq[k,i][\[Lambda]___][rp]},
+Block[{leftover,tab,temp,var=First[xx]},
 {leftover,tab}=AllCoefficientArrays[Sprouts`eq[[k,i]]//.Sprouts`parameters,Sequence@@Sprouts`listvar[[k]]];
+MapIndexed[(Sprouts`coefeq[k,i,First[#2]-1][\[Lambda]___]=SparseArray@*(Function@@{var,ArrayRules@#1}))&,tab];
+(*Print[tab];*)
+(*{leftover,tab}=AllCoefficientArrays[Sprouts`eq[[k,i]]//.Sprouts`parameters,Sequence@@Sprouts`listvar[[k]]];*)
+(*Print[tab];*)
 ]
 ,{i,1,Length[Sprouts`eq[[k]]]}];
 (*Table[Sprouts`coefeq\[Lambda][k,i,j,l][r_]=Coefficient[#,\[Lambda]\[Lambda],l]&@Sprouts`coefeq[k,i,j][\[Lambda]\[Lambda]][r],{l,0,Sprouts`\[Lambda]max},*)
-Table[Sprouts`coefeq\[Lambda][k,i,j,l][rp]=Coefficient[#,\[Lambda]\[Lambda],l]&@Sprouts`coefeq[k,i,j][\[Lambda]\[Lambda]][Sequence@@xx],{l,0,Sprouts`\[Lambda]max},
+
+Table[
+Sprouts`coefeq\[Lambda][k,i,j,l][rp]=Coefficient[#,\[Lambda]\[Lambda],l]&@Sprouts`coefeq[k,i,j][\[Lambda]\[Lambda]][Sequence@@xx],{l,0,Sprouts`\[Lambda]max},
 {j,0,Sprouts`ndiff},{i,1,Length[Sprouts`eq[[k]]]}];
-,{k,1,Sprouts`nlayers}];
+,{k,1,Sprouts`nlayers}];*)
+
+(* get symbolic matrices of equations *)
+ClearAll[Sprouts`coefeq,Sprouts`rhseq,Sprouts`coefeq\[Lambda]];
+Block[{leftover,tab,temp,var=First[xx],tab\[Lambda],dim},
+Table[
+	Table[
+tab\[Lambda]=PadRight[CoefficientList[Sprouts`eq[[k,i]]//.Sprouts`parameters,\[Lambda]\[Lambda]],Automatic,0]\[Transpose];
+Table[
+		{leftover,tab}=AllCoefficientArrays[tab\[Lambda][[l]],Sequence@@Sprouts`listvar[[k]]];
+		MapIndexed[(Sprouts`coefeq\[Lambda][k,i,First[#2]-1,l-1]=SparseArray@@#&@*(Function@@{var,{ArrayRules@#1,Dimensions@#1}}))&,tab]
+	,{l,1,Length[tab\[Lambda]]}]
+		,{i,1,Length[Sprouts`eq[[k]]]}];
+	,{k,1,Sprouts`nlayers}];
+];
 
 (* get symbolic matrices of boundary conditions *)ClearAll[Sprouts`coefrbc,Sprouts`rhsrbc,Sprouts`coefrbc\[Lambda],Sprouts`coeflbc,Sprouts`rhslbc,Sprouts`coeflbc\[Lambda]];
 Table[
-With[{tab=Table[Sprouts`coefrbc[i,j][\[Lambda]___][r_],{j,0,Sprouts`ndiff}],leftover=Sprouts`rhsrbc[i][\[Lambda]___][r_]},{leftover,tab}=AllCoefficientArrays[Sprouts`rbc[[i]]//.Sprouts`parameters,Sequence@@Sprouts`listvar[[-1]]]],{i,1,Length[Sprouts`rbc]}];Table[Sprouts`coefrbc\[Lambda][i,j,l][r_]=Coefficient[#,\[Lambda]\[Lambda],l]&@Sprouts`coefrbc[i,j][\[Lambda]\[Lambda]][r],{l,0,Sprouts`\[Lambda]max},{j,0,Sprouts`ndiff},{i,1,Length[Sprouts`rbc]}];If[!Sprouts`zeroInDomain,
+With[{tab=Table[Sprouts`coefrbc[i,j][\[Lambda]___][r_],{j,0,Sprouts`ndiff}],leftover=Sprouts`rhsrbc[i][\[Lambda]___][r_]},{leftover,tab}=AllCoefficientArrays
+[Sprouts`rbc[[i]]//.Sprouts`parameters,Sequence@@Sprouts`listvar[[-1]]]],{i,1,Length[Sprouts`rbc]}];Table[Sprouts`coefrbc\[Lambda][i,j,l][r_]=Coefficient[#,\[Lambda]\[Lambda],l]&@Sprouts`coefrbc[i,j][\[Lambda]\[Lambda]][r],{l,0,Sprouts`\[Lambda]max},{j,0,Sprouts`ndiff},{i,1,Length[Sprouts`rbc]}];If[!Sprouts`zeroInDomain,
 Table[
 With[{tab=Table[Sprouts`coeflbc[i,j][\[Lambda]___][r_],{j,0,Sprouts`ndiff}],leftover=Sprouts`rhslbc[i][\[Lambda]___][r_]},{leftover,tab}=AllCoefficientArrays[Sprouts`lbc[[i]]//.Sprouts`parameters,Sequence@@Sprouts`listvar[[1]]]],{i,1,Length[Sprouts`lbc]}];Table[Sprouts`coeflbc\[Lambda][i,j,l][r_]=Coefficient[#,\[Lambda]\[Lambda],l]&@Sprouts`coeflbc[i,j][\[Lambda]\[Lambda]][r],{l,0,Sprouts`\[Lambda]max},{j,0,Sprouts`ndiff},{i,1,Length[Sprouts`lbc]}]
 ];
@@ -295,6 +319,7 @@ If[Sprouts`zeroInDomain&&SameQ[layer,1],
 SetOptions[MakeMatD,UseParity->{True,First@Sprouts`eid,First@Sprouts`oid}],
 SetOptions[MakeMatD,UseParity->{False}]
 ];
+(*Print[Normal[Sprouts`coefeq\[Lambda][layer,i,j,\[Lambda]][Sprouts`rfu[layer][u]]]];*)
 MakeMatD[(Sprouts`drdu[layer])^-j Sprouts`coefeq\[Lambda][layer,i,j,\[Lambda]][Sprouts`rfu[layer][u]],u,j,Sprouts`\[ScriptCapitalO]d[[layer,i]],Sprouts`nr]
 ,{i,1,Length[Sprouts`eq[[layer]]]}]
 ,{j,0,Sprouts`ndiff}]
@@ -444,6 +469,7 @@ Block[{multmat,diffmat,op,mat,chop=Expand@Simplify[expr//Chop],(*options*)ip,ndi
 ndiff=If[SameQ[OptionValue[MaximumDerivative],None],dermax,OptionValue[MaximumDerivative]];
 diffmat=D\[Lambda][der,n];
 	(*multmat=Dot@@Table[S\[Lambda][m,n],{m,dermax-1,der,-1}].M\[Lambda][der,n,expr,x];*)
+	(*Print[M\[Lambda][der,n,expr,x]];*)
 	multmat=Dot@@Table[S\[Lambda][m,n],{m,ndiff-1,der,-1}] . M\[Lambda][der,n,expr,x];
 	If[ip!=0,
 		(*op=(1-2Mod[der,2])*Piecewise[{{1,SameQ[expr,expr/.x->-x]},{-1,SameQ[expr,-expr/.x->-x]}}];*)
@@ -480,13 +506,13 @@ oid=Last@Rest@OptionValue[UseParity];
 	dim={n/2,n/2}-{Floor[dermax/2],0};
 	elem=Most@ArrayRules[m];
 	size=Length[elem];
-	tab=
-Table[{row,col}=elem[[i,1]];entry=elem[[i,2]];
+	tab=Table[{row,col}=elem[[i,1]];entry=elem[[i,2]];
 		If[MemberQ[eid,col],SetOptions[DiffOperator,Parity->1],SetOptions[DiffOperator,Parity->-1]];
 		Band[{row-1,col-1}*dim+1]->{DiffOperator[x,entry,der,dermax,n]}
 	,{i,1,size}];
 	If[size!=0,
-		Total[BuildSparseIterate[#,Dimensions[m]dim]&/@tab],
+		Total[SparseArray[#,Dimensions[m]dim]&/@tab],
+		(*Total[BuildSparseIterate[#,Dimensions[m]dim]&/@tab],*) (* old custom function doesn't work in versions > 12 *)
 		SparseArray[{},Dimensions[m]dim]
 	],
 	(* parity flag is down *)
@@ -495,9 +521,11 @@ Table[{row,col}=elem[[i,1]];entry=elem[[i,2]];
 	elem=Most@ArrayRules[m];
 	size=Length[elem];
 	tab=Table[{row,col}=elem[[i,1]];entry=elem[[i,2]];
-	Band[{row-1,col-1}*dim+1]->{DiffOperator[x,entry,der,dermax,n]},{i,1,size}];
+		Band[{row-1,col-1}*dim+1]->{DiffOperator[x,entry,der,dermax,n]}
+	,{i,1,size}];
 	If[size!=0,
-		Total[BuildSparseIterate[#,Dimensions[m]dim]&/@tab],
+		Total[SparseArray[#,Dimensions[m]dim]&/@tab],
+		(*Total[BuildSparseIterate[#,Dimensions[m]dim]&/@tab],*) (* old custom function doesn't work in versions > 12 *)
 		SparseArray[{},Dimensions[m]dim]
 	]
 	]
