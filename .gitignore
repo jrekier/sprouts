@@ -8,3 +8,4 @@ solver/
 test/
 **/*.mtx
 **/*.dat
+jupyter/.ipynb_checkpoints/
