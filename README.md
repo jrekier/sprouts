@@ -1,6 +1,9 @@
 # SPROUTS
 a **S**ymbolic **P**arser for **ROU**nd objec**TS**
 
+[![DOI](https://zenodo.org/badge/1085547857.svg)](https://doi.org/10.5281/zenodo.17472004)
+
+
 ## Description
 
 Sprouts is a symbolic package written for *Wolfram Mathematica* that parses lists of ODEs corresponding to the spherical harmonics components of PDEs in spherical (and oblate spheroidal) coordinates into a set of discretized matrices operating on the array of Chebyshev coefficients representing the set of functions to solve for. 
