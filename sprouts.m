@@ -300,7 +300,8 @@ Table[
 	,{k,1,Sprouts`nlayers}];
 ];
 
-(* get symbolic matrices of boundary conditions *)ClearAll[Sprouts`coefrbc,Sprouts`rhsrbc,Sprouts`coefrbc\[Lambda],Sprouts`coeflbc,Sprouts`rhslbc,Sprouts`coeflbc\[Lambda]];
+(* get symbolic matrices of boundary conditions *)
+ClearAll[Sprouts`coefrbc,Sprouts`rhsrbc,Sprouts`coefrbc\[Lambda],Sprouts`coeflbc,Sprouts`rhslbc,Sprouts`coeflbc\[Lambda]];
 Table[
 With[{tab=Table[Sprouts`coefrbc[i,j][\[Lambda]___][r_],{j,0,Sprouts`ndiff}],leftover=Sprouts`rhsrbc[i][\[Lambda]___][r_]},{leftover,tab}=AllCoefficientArrays
 [Sprouts`rbc[[i]]//.Sprouts`parameters,Sequence@@Sprouts`listvar[[-1]]]],{i,1,Length[Sprouts`rbc]}];Table[Sprouts`coefrbc\[Lambda][i,j,l][r_]=Coefficient[#,\[Lambda]\[Lambda],l]&@Sprouts`coefrbc[i,j][\[Lambda]\[Lambda]][r],{l,0,Sprouts`\[Lambda]max},{j,0,Sprouts`ndiff},{i,1,Length[Sprouts`rbc]}];If[!Sprouts`zeroInDomain,
