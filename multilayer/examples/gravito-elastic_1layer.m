@@ -1,6 +1,6 @@
 (* ::Package:: *)
 
-Needs["TenGSHui`","../TenGSHui.m"];
+Needs["TenGSHui`","~/code/TenGSHui.m"];
 FastMode=True;
 
 
@@ -18,7 +18,7 @@ Sprouts`coordinates="Spherical";
 (* resolution: *)
 \[ScriptM]min=0;\[ScriptM]max=\[ScriptM]min;
 \[ScriptL]min=0;\[ScriptL]max=\[ScriptL]min;
-n=100;
+Sprouts`n={100};
 
 
 range\[ScriptL]\[ScriptM]=With[{\[ScriptL]=\[ScriptL]min},Table[{\[ScriptL],\[ScriptM]},{\[ScriptM],\[ScriptM]min,\[ScriptM]max}]];

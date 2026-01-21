@@ -24,7 +24,7 @@ Begin["`Private`"];
 (*based on Olver et al.*)
 
 
-Needs["Olveretal`","~/ownCloud/Shared/Olveretal.m"];
+Needs["spectral`","../spectral.m"];
 
 
 (*(* evaluate derivative of Chebyshev polynomial at one point and save result *)
@@ -118,7 +118,8 @@ Table[{row,col}=elem[[i,1]];entry=elem[[i,2]];
 		Band[{row-1,col-1}*dim+1]->{DiffOperator[x,entry,der,dermax,n]}
 	,{i,1,size}];
 	If[size!=0,
-		Total[BuildSparseIterate[#,Dimensions[m]dim]&/@tab],
+		Total[SparseArray[#,Dimensions[m]dim]&/@tab],
+		(*Total[BuildSparseIterate[#,Dimensions[m]dim]&/@tab],*) (* old custom function doesn't work in versions > 12 *)
 		SparseArray[{},Dimensions[m]dim]
 	],
 	(* parity flag is down *)
@@ -129,7 +130,8 @@ Table[{row,col}=elem[[i,1]];entry=elem[[i,2]];
 	tab=Table[{row,col}=elem[[i,1]];entry=elem[[i,2]];
 	Band[{row-1,col-1}*dim+1]->{DiffOperator[x,entry,der,dermax,n]},{i,1,size}];
 	If[size!=0,
-		Total[BuildSparseIterate[#,Dimensions[m]dim]&/@tab],
+		Total[SparseArray[#,Dimensions[m]dim]&/@tab],
+		(*Total[BuildSparseIterate[#,Dimensions[m]dim]&/@tab],*) (* old custom function doesn't work in versions > 12 *)
 		SparseArray[{},Dimensions[m]dim]
 	]
 	]
